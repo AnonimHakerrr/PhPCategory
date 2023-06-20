@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('login',array('as'=>'login',function(){
+    return response(['Invalid auth data'], 401);;
+}));
