@@ -72,7 +72,12 @@
                     "200": {
                         "description": "Add Category."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/category/{id}": {
@@ -148,7 +153,12 @@
                     "400": {
                         "description": "Validation has fault"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/products": {
@@ -167,33 +177,37 @@
                 "tags": [
                     "Product"
                 ],
-                "summary": "Create a new product",
-                "description": "Creates a new product with the provided data.",
                 "operationId": "4da818c59d83cad86b9b82ea8e156372",
                 "requestBody": {
-                    "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
                                     "category_id",
                                     "name",
+                                    "description",
                                     "price",
-                                    "description"
+                                    "images[]"
                                 ],
                                 "properties": {
-                                    "category_id": {
-                                        "type": "integer"
-                                    },
                                     "name": {
                                         "type": "string"
                                     },
+                                    "category_id": {
+                                        "type": "number"
+                                    },
                                     "price": {
-                                        "type": "number",
-                                        "format": "double"
+                                        "type": "number"
                                     },
                                     "description": {
                                         "type": "string"
+                                    },
+                                    "images[]": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -202,16 +216,18 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Product created successfully"
+                    "200": {
+                        "description": "Success"
                     },
                     "400": {
-                        "description": "Bad request. Invalid or missing parameters"
-                    },
-                    "500": {
-                        "description": "Internal server error"
+                        "description": "Validation has been fault"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/products/{id}": {

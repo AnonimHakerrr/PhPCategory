@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('product_images', function (Blueprint $table) {
             $table->id();
             $table->bigInteger("product_id")->unsigned()->nullable();
-            $table->string("name",8,2);
+            $table->string("name");
             $table->Integer("priority");
             $table->timestamps();
             $table->foreign("product_id")

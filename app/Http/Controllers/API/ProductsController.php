@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Validator;
 use Storage;
@@ -21,63 +22,47 @@ class ProductsController extends Controller
     public function index()
     {
 
-        $list = Product::all();
+        $list = Product::with("product_images")->with("category")->get();
         return response()->json($list,200);
     }
-
-
     /**
      * @OA\Post(
-     *     path="/api/products",
+     *     security={{"bearerAuth":{}}},
      *     tags={"Product"},
-     *     summary="Create a new product",
-     *     description="Creates a new product with the provided data.",
+     *     path="/api/products",
      *     @OA\RequestBody(
-     *         required=true,
      *         @OA\MediaType(
-     *             mediaType="application/json",
+     *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 @OA\Property(
-     *                     property="category_id",
-     *                     type="integer"
-     *                 ),
+     *                 required={"category_id", "name", "description", "price", "images[]"},
      *                 @OA\Property(
      *                     property="name",
      *                     type="string"
      *                 ),
+     *                  @OA\Property(
+     *                     property="category_id",
+     *                     type="number"
+     *                 ),
      *                 @OA\Property(
      *                     property="price",
-     *                     type="number",
-     *                     format="double"
+     *                     type="number"
      *                 ),
      *                 @OA\Property(
      *                     property="description",
      *                     type="string"
      *                 ),
-     *                 required={
-     *                     "category_id",
-     *                     "name",
-     *                     "price",
-     *                     "description"
-     *                 }
+     *                 @OA\Property(
+     *                     property="images[]",
+     *                     type="array",
+     *                     @OA\Items(type="string", format="binary")
+     *                 )
      *             )
      *         )
      *     ),
-     *     @OA\Response(
-     *         response="201",
-     *         description="Product created successfully"
-     *     ),
-     *     @OA\Response(
-     *         response="400",
-     *         description="Bad request. Invalid or missing parameters"
-     *     ),
-     *     @OA\Response(
-     *         response="500",
-     *         description="Internal server error"
-     *     )
+     *     @OA\Response(response="200", description="Success"),
+     *     @OA\Response(response="400", description="Validation has been fault"),
      * )
      */
-
     public function store(Request $request)
     {
         // validate all
@@ -96,9 +81,25 @@ class ProductsController extends Controller
             return response()->json($validator->errors(), 400);
         }
         $product = Product::create($inputs);
+        $images=$request->file("images");
+        if($request->hasFile("images"))
+        {
+            $i=1;
+            foreach ($images as $image)
+            {
+                $fileName= uniqid().'.'.$image->getClientOriginalExtension();
+                $priority = $i++;
+                $image->move(public_path('uploads/products'),$fileName);
+                ProductImage::create([
+                    "product_id"=>$product->id,
+                    "name"=>$fileName,
+                    "priority"=>$priority
+                ]);
+            }
+        }
+        $product->load("product_images");
         return response()->json($inputs,200);
     }
-
 
     /**
      * @OA\Get(
